@@ -1,0 +1,62 @@
+:root{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#17233a;background:#f5f7fb;font-synthesis:none}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.5}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}.shell{max-width:1220px;margin:0 auto;padding:24px 24px 44px}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}h1,h2,h3,p{margin-top:0}h1{font-size:27px;letter-spacing:-.04em;margin-bottom:0}.eyebrow{font-size:10px;letter-spacing:.15em;font-weight:800;color:#2563eb;margin-bottom:2px}.top-actions{display:flex;gap:8px}.setup{display:flex;align-items:end;gap:12px;background:#fff;border:1px solid #e3e8f0;border-radius:16px;padding:15px;margin-bottom:16px}.setup-text{flex:1;min-width:0}.setup label,.answer-panel label{display:block;font-size:13px;font-weight:700;color:#475569;margin-bottom:7px}.setup select{width:100%;border:1px solid #ccd5e1;border-radius:10px;background:#fff;padding:11px;color:#17233a;min-height:44px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}.stats>div{background:#fff;border:1px solid #e3e8f0;border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:4px}.stats span{font-size:12px;color:#64748b}.stats strong{font-size:24px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.progress-track{height:7px;background:#e2e8f0;border-radius:9px;margin-bottom:18px;overflow:hidden}.progress-bar{height:100%;background:#2563eb;width:0%;transition:width .3s}.workspace{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,1fr);gap:16px;align-items:start}.panel{min-width:0;background:#fff;border:1px solid #e3e8f0;border-radius:18px;padding:20px}.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.smalllabel{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;color:#2563eb;margin-bottom:4px}.panel-heading h2{font-size:19px;margin:0;letter-spacing:-.03em}.chip{font-size:11px;background:#eff6ff;color:#1d4ed8;padding:7px 10px;border-radius:20px;white-space:nowrap}.image-well{min-height:340px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}.image-well img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain;cursor:zoom-in}.image-well p{padding:24px;text-align:center;color:#64748b}.hint{font-size:12px;color:#94a3b8;margin:10px 0 0}.answer-line{display:flex;gap:8px}.answer-line input{min-width:0;flex:1;min-height:49px;border:1px solid #cbd5e1;border-radius:10px;padding:12px;font-size:17px}.primary,.outline,.ghost{border-radius:10px;min-height:44px;padding:11px 18px;font-weight:700;border:1px solid transparent}.primary{background:#2563eb;color:white}.primary:hover{background:#1d4ed8}.outline{background:white;color:#1d4ed8;border-color:#bfdbfe}.ghost{background:#f1f5f9;color:#475569}.quick{margin-top:18px}.quick>span{display:block;font-size:12px;color:#64748b;margin-bottom:8px}.quick>div{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.quick button{min-height:45px;border:1px solid #dbe3ef;border-radius:10px;background:#f8fafc;font-weight:700;color:#334155}.quick button:hover{background:#eff6ff}.action-row{display:flex;gap:8px;margin-top:18px}.action-row button{flex:1}.feedback{padding:13px 14px;border-radius:10px;margin-top:18px;font-size:14px;font-weight:700}.feedback.good{color:#166534;background:#f0fdf4}.feedback.bad{color:#991b1b;background:#fef2f2}.feedback.neutral{color:#1d4ed8;background:#eff6ff}.explanation{margin-top:16px;padding:16px;border:1px solid #dbeafe;background:#f8fbff;border-radius:12px}.explanation h3{font-size:16px;margin:0 0 10px}.explanation p{font-size:14px;margin-bottom:10px}.explanation img{display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;cursor:zoom-in;background:#fff;border:1px solid #e2e8f0;border-radius:8px}.next{width:100%;margin-top:16px}.finish{text-align:center;padding:28px 6px}.finish-emoji{font-size:42px}.finish h2{margin:10px 0}.finish p{color:#64748b;font-size:14px}.finish button{margin-top:12px}footer{text-align:center;font-size:12px;color:#94a3b8;margin-top:24px}dialog{border:none;background:#111827;padding:16px;border-radius:14px;max-width:95vw;max-height:95vh}dialog::backdrop{background:rgba(10,17,30,.86)}dialog img{display:block;max-width:90vw;max-height:80vh;object-fit:contain}.lightbox-close{display:block;margin:0 0 10px auto;background:#fff;border:0;padding:9px 14px;border-radius:8px}[hidden]{display:none!important}@media(max-width:800px){.shell{padding:15px 12px 34px}.topbar{margin-bottom:14px}h1{font-size:22px}.setup{flex-wrap:wrap;padding:12px;gap:9px}.setup-text{flex-basis:calc(50% - 6px)}.setup>#apply{width:100%}.stats{gap:7px}.stats>div{padding:10px 7px;text-align:center}.stats span{font-size:11px}.stats strong{font-size:19px}.workspace{grid-template-columns:1fr;gap:12px}.panel{padding:14px}.image-well{min-height:180px}.image-well img{max-height:58vh}.panel-heading h2{font-size:17px}.answer-line .primary{padding:10px 16px}.hint{margin:8px 0 0}}
+
+/* v1.1: prioritize question content over controls and statistics */
+.topbar{margin-bottom:12px}
+.top-actions #next{white-space:nowrap}
+.bottom-tools{margin-top:22px;padding-top:18px;border-top:1px solid #dbe3ef}
+.bottom-tools-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.bottom-tools-heading h2{font-size:16px;margin:0}
+.bottom-tools .setup{margin-bottom:12px}
+.bottom-tools .stats{margin-bottom:12px}
+.bottom-tools .progress-track{margin-bottom:0}
+@media(max-width:800px){.topbar{margin-bottom:10px}.eyebrow{display:none}.top-actions #next{min-height:42px;padding:9px 12px;font-size:13px}.bottom-tools{margin-top:16px}}
+
+/* v1.2: compact study header and vertical question -> explanation -> answer flow */
+.shell{max-width:980px;padding-top:13px}
+.topbar{align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px}
+.topbar>div:first-child{flex:none;min-width:max-content}
+.topbar h1{font-size:25px}
+.header-stats{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 11px;min-width:0}
+.header-stats>div{display:flex;align-items:baseline;gap:4px;white-space:nowrap;border:0;background:none;padding:0}
+.header-stats span{font-size:10px;color:#64748b}
+.header-stats strong{font-size:12px;line-height:1.3;font-weight:800;font-variant-numeric:tabular-nums;color:#1e40af}
+.workspace{display:flex;flex-direction:column;gap:10px}
+.workspace>.panel{width:100%}
+.question-panel{padding-bottom:12px}
+.question-panel .panel-heading{margin-bottom:9px}
+.image-well{min-height:140px}
+.image-well img{max-height:none}
+.explanation{margin:0;background:#f8fbff;border:1px solid #bfdbfe;padding:15px}
+.explanation h3{margin:0 0 8px;font-size:16px}
+.explanation .feedback{margin:0 0 9px}
+.explanation img{max-height:none}
+.explanation .next{display:block;width:100%;margin-top:10px;min-height:48px}
+.answer-panel .panel-heading{margin-bottom:9px}
+.answer-panel .quick{margin-top:10px}
+.answer-panel .action-row{margin-top:10px}
+@media(max-width:800px){
+ .shell{padding:10px 10px 30px}
+ .topbar{gap:7px;margin-bottom:8px;align-items:center}
+ .topbar h1{font-size:18px;white-space:nowrap}
+ .header-stats{gap:2px 7px}
+ .header-stats>div{gap:2px}
+ .header-stats span{font-size:9px}
+ .header-stats strong{font-size:10px}
+ .panel{padding:11px}
+ .workspace{gap:8px}
+ .image-well{min-height:90px}
+ .image-well img{max-height:none}
+ .hint{font-size:10px;margin-top:5px}
+ .explanation{padding:11px}
+}
+@media(max-width:370px){
+ .topbar{align-items:flex-start}
+ .header-stats{max-width:205px}
+ .topbar h1{font-size:17px}
+ .header-stats{gap:2px 6px}
+ .header-stats span{font-size:8px}
+ .header-stats strong{font-size:10px}
+}
+
+/* v1.3: correct answers offer next directly under the question; incorrect answers retain next below explanation. */
+.workspace>.next-correct{width:100%;margin:0;min-height:48px;border-radius:12px;}
