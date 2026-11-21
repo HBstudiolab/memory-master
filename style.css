@@ -421,7 +421,7 @@ body.has-pacer{padding-top:var(--pacer-h,36px)}
 }
 
 /* v1.13: 활·다음 플로팅 버튼은 엄지로 누르기 좋게 오른쪽 아래 */
-body{padding-bottom:96px}
-.archery-launch,.next-float{top:auto;bottom:max(18px,calc(env(safe-area-inset-bottom) + 14px));right:max(16px,env(safe-area-inset-right));transform:none;width:64px;height:64px}
+body{padding-bottom:126px}
+.archery-launch,.next-float{top:auto;bottom:max(48px,calc(env(safe-area-inset-bottom) + 40px));right:max(36px,calc(env(safe-area-inset-right) + 24px));transform:none;width:64px;height:64px}
 @keyframes next-float-in{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
-.fps-toast{bottom:max(96px,calc(env(safe-area-inset-bottom) + 92px))}
+.fps-toast{bottom:max(126px,calc(env(safe-area-inset-bottom) + 118px))}
