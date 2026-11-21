@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>영역 편집기</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#17233a;background:#f5f7fb}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid #e3e8f0;position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0 8px 0 0}
+header a{font-size:13px;color:#2563eb}
+.btn{border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:8px 13px;font-weight:700;color:#1e293b}
+.btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
+.btn.danger{color:#b91c1c;border-color:#fecaca}
+.status{font-size:13px;color:#64748b;margin-left:auto}
+.status.dirty{color:#b45309;font-weight:700}
+main{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px;padding:14px 16px}
+aside{background:#fff;border:1px solid #e3e8f0;border-radius:14px;max-height:calc(100vh - 100px);overflow:auto;position:sticky;top:76px}
+aside input{width:calc(100% - 16px);margin:8px;padding:8px;border:1px solid #cbd5e1;border-radius:8px}
+#list{list-style:none;margin:0;padding:0 0 8px}
+#list li{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center;word-break:break-all}
+#list li:hover{background:#f1f5f9}
+#list li.active{background:#dbeafe;font-weight:700}
+#list li .dot{flex:none;width:9px;height:9px;border-radius:50%;background:#e2e8f0}
+#list li.done .dot.answer{background:#16a34a}
+#list li.explained .dot.explain{background:#2563eb}
+.stage{background:#fff;border:1px solid #e3e8f0;border-radius:14px;padding:14px;min-width:0}
+.stage-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.stage-head h2{font-size:15px;margin:0;flex:1;min-width:200px;word-break:break-all}
+.modes{display:inline-flex;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;margin-bottom:10px}
+.modes button{border:0;background:#fff;padding:9px 16px;font-weight:800;color:#475569;display:flex;align-items:center;gap:7px}
+.modes button+button{border-left:1px solid #cbd5e1}
+.modes button i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.modes .answer i{background:#16a34a}.modes .explain i{background:#2563eb}
+.modes button[aria-pressed="true"].answer{background:#dcfce7;color:#166534}
+.modes button[aria-pressed="true"].explain{background:#dbeafe;color:#1e40af}
+.help{font-size:12px;color:#64748b;margin:0 0 10px;line-height:1.6}
+kbd{background:#f1f5f9;border:1px solid #cbd5e1;border-radius:4px;padding:0 4px;font-size:11px}
+.canvas{position:relative;width:min(100%,900px);user-select:none;touch-action:none;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;cursor:crosshair;line-height:0}
+.canvas img{display:block;width:100%;height:auto;pointer-events:none}
+.rect{position:absolute;border:3px solid #16a34a;background:#22c55e33;border-radius:4px;cursor:pointer}
+.rect.explain{border-color:#2563eb;background:#3b82f62e;border-left:0;border-right:0;border-radius:0}
+.rect.inactive{opacity:.45;pointer-events:none}
+.rect.selected{border-color:#dc2626;background:#ef444433}
+.rect.drawing{border-style:dashed;border-color:#64748b;background:#64748b26;pointer-events:none}
+.rect span{position:absolute;left:0;top:0;background:#16a34a;color:#fff;font-size:11px;font-weight:700;line-height:1;padding:3px 6px;border-radius:0 0 4px 0}
+.rect.explain span{background:#2563eb}
+.rect.selected span{background:#dc2626}
+.empty{padding:60px 20px;text-align:center;color:#64748b;line-height:1.8}
+#output{width:100%;min-height:120px;margin-top:12px;font:12px/1.5 Consolas,monospace;border:1px solid #cbd5e1;border-radius:8px;padding:8px}
+details{margin-top:12px;font-size:13px}
+@media(max-width:800px){main{grid-template-columns:1fr}aside{position:static;max-height:240px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>영역 편집기</h1>
+  <label class="btn">📁 문제 세트 폴더 선택<input id="folder" type="file" webkitdirectory multiple hidden/></label>
+  <label class="btn">regions.json 불러오기<input id="import" type="file" accept=".json,application/json" hidden/></label>
+  <button class="btn primary" id="save" type="button" title="Ctrl+S">💾 저장 <kbd>Ctrl+S</kbd></button>
+  <button class="btn" id="copy" type="button">JSON 복사</button>
+  <a href="index.html">← 학습 화면</a>
+  <span class="status" id="status">문제를 불러오는 중…</span>
+</header>
+<main>
+  <aside>
+    <input id="filter" type="search" placeholder="파일명 검색"/>
+    <ul id="list"></ul>
+  </aside>
+  <section class="stage">
+    <div class="modes" role="group" aria-label="편집할 영역">
+      <button class="answer" id="mode-answer" type="button" aria-pressed="true"><i></i>정답 영역 <kbd>1</kbd></button>
+      <button class="explain" id="mode-explain" type="button" aria-pressed="false"><i></i>해설 영역 <kbd>2</kbd></button>
+    </div>
+    <div class="stage-head">
+      <button class="btn" id="prev" type="button">← 이전</button>
+      <h2 id="title">-</h2>
+      <button class="btn danger" id="delete" type="button">선택 영역 삭제</button>
+      <button class="btn danger" id="clear" type="button">현재 모드 영역 모두 삭제</button>
+      <button class="btn" id="next" type="button">다음 →</button>
+    </div>
+    <p class="help" id="help"></p>
+    <div id="stage-body"><div class="empty" id="empty">
+      문제 목록을 자동으로 불러오지 못했습니다.<br/>
+      위의 <b>📁 문제 세트 폴더 선택</b>을 눌러 <code>datasets/default</code> 폴더를 선택하세요.<br/>
+      (<code>실행.bat</code>으로 열면 자동으로 불러옵니다.)
+    </div></div>
+    <details>
+      <summary>저장 결과 미리보기 (regions.json)</summary>
+      <textarea id="output" readonly></textarea>
+    </details>
+  </section>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const DRAFT_KEY = 'memory-master-region-draft-v2';
+const MIN = 0.005;
+const KINDS = {
+  answer: {store: 'regions', label: '정답', help: '이미지 위를 <b>드래그</b>해서 <b>정답 위치</b>를 사각형으로 지정하세요. 학습 화면에서 이 영역 안을 누르면 정답, 밖을 누르면 오답입니다.'},
+  explain: {store: 'explains', label: '해설', help: '문제 이미지 안의 <b>해설 부분</b>을 위아래로 <b>드래그</b>해서 지정하세요(폭은 자동으로 이미지 전체). 학습 화면에서는 이 띠를 <b>잘라낸 이미지</b>로 보여주고, 답한 뒤에 펼쳐집니다.'}
+};
+let items = [];                       // {key:'images/xxx.png', src:url}
+let data = {regions: {}, explains: {}}; // key -> [{x,y,w,h}]
+let mode = 'answer';
+let index = -1, selected = -1, dirty = false, drag = null;
+
+const round = n => Math.round(n * 10000) / 10000;
+const isExplanation = name => /h\.[a-z0-9]+$/i.test(name);
+const isImage = name => /\.(png|jpe?g|webp|gif|svg)$/i.test(name);
+const store = (kind = mode) => data[KINDS[kind].store];
+
+function setStatus(text, isDirty) {
+  $('status').textContent = text;
+  $('status').classList.toggle('dirty', !!isDirty);
+}
+function markDirty() {
+  dirty = true;
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch {}
+  setStatus('저장하지 않은 변경 사항이 있습니다.', true);
+  renderOutput();
+}
+function serialize(map) {
+  const out = {};
+  for (const key of Object.keys(map).sort()) {
+    const list = (map[key] || []).map(r => ({x: round(r.x), y: round(r.y), w: round(r.w), h: round(r.h)}));
+    if (list.length) out[key] = list;
+  }
+  return out;
+}
+function buildJson() {
+  return JSON.stringify({version: 2, regions: serialize(data.regions), explains: serialize(data.explains)}, null, 2) + '\n';
+}
+function renderOutput() { $('output').value = buildJson(); }
+
+function cleanMap(map) {
+  const clean = {};
+  for (const [key, list] of Object.entries(map || {})) {
+    if (!Array.isArray(list)) continue;
+    const ok = list.map(r => ({x: +r.x, y: +r.y, w: +r.w, h: +r.h}))
+      .filter(r => [r.x, r.y, r.w, r.h].every(Number.isFinite) && r.w > 0 && r.h > 0);
+    if (ok.length) clean[key] = ok;
+  }
+  return clean;
+}
+function normalizeData(raw) {
+  if (!raw || typeof raw !== 'object') return {regions: {}, explains: {}};
+  if (!raw.regions && !raw.explains) return {regions: cleanMap(raw), explains: {}}; // 예전 형식
+  return {regions: cleanMap(raw.regions), explains: cleanMap(raw.explains)};
+}
+
+function setMode(next) {
+  mode = next;
+  selected = -1;
+  $('mode-answer').setAttribute('aria-pressed', String(mode === 'answer'));
+  $('mode-explain').setAttribute('aria-pressed', String(mode === 'explain'));
+  $('help').innerHTML = KINDS[mode].help +
+    ' 새로 그리면 기존 영역을 <b>대체</b>하고, <kbd>Shift</kbd>+드래그는 <b>추가</b>합니다. 영역을 클릭해 선택 후 <kbd>Delete</kbd>로 삭제, <kbd>←</kbd>/<kbd>→</kbd>로 문제 이동, <kbd>1</kbd>/<kbd>2</kbd>로 모드 전환.';
+  renderRects();
+}
+
+function renderList() {
+  const term = $('filter').value.trim().toLowerCase();
+  $('list').replaceChildren(...items.map((item, i) => {
+    const li = document.createElement('li');
+    li.hidden = !!term && !item.key.toLowerCase().includes(term);
+    li.classList.toggle('active', i === index);
+    li.classList.toggle('done', !!data.regions[item.key]?.length);
+    li.classList.toggle('explained', !!data.explains[item.key]?.length);
+    const a = document.createElement('span'); a.className = 'dot answer'; a.title = '정답 영역';
+    const e = document.createElement('span'); e.className = 'dot explain'; e.title = '해설 영역';
+    li.append(a, e, item.key.replace(/^images\//, ''));
+    li.onclick = () => select(i);
+    return li;
+  }));
+  if (!dirty) {
+    const done = items.filter(item => data.regions[item.key]?.length).length;
+    const ex = items.filter(item => data.explains[item.key]?.length).length;
+    setStatus(`${items.length}문제 · 정답 영역 ${done} · 해설 영역 ${ex}`);
+  }
+}
+
+function select(i) {
+  if (!items.length) return;
+  index = Math.max(0, Math.min(items.length - 1, i));
+  selected = -1;
+  const item = items[index];
+  $('title').textContent = item.key;
+  const wrap = document.createElement('div');
+  wrap.className = 'canvas'; wrap.id = 'canvas';
+  const img = document.createElement('img');
+  img.src = item.src; img.alt = item.key; img.draggable = false;
+  wrap.append(img);
+  $('stage-body').replaceChildren(wrap);
+  attachDrawing(wrap);
+  renderRects();
+  renderList();
+  $('list').children[index]?.scrollIntoView({block: 'nearest'});
+}
+
+function renderRects() {
+  const wrap = $('canvas');
+  if (!wrap || index < 0) return;
+  wrap.querySelectorAll('.rect').forEach(el => el.remove());
+  for (const kind of ['explain', 'answer']) {
+    const list = store(kind)[items[index].key] || [];
+    list.forEach((r, i) => {
+      const el = document.createElement('div');
+      el.className = 'rect' + (kind === 'explain' ? ' explain' : '') + (kind !== mode ? ' inactive' : '') + (kind === mode && i === selected ? ' selected' : '');
+      Object.assign(el.style, {left: r.x * 100 + '%', top: r.y * 100 + '%', width: r.w * 100 + '%', height: r.h * 100 + '%'});
+      const label = document.createElement('span');
+      label.textContent = KINDS[kind].label + (list.length > 1 ? ` ${i + 1}` : '');
+      el.append(label);
+      el.addEventListener('pointerdown', e => { e.stopPropagation(); selected = i; renderRects(); });
+      wrap.append(el);
+    });
+  }
+}
+
+function pointIn(wrap, e) {
+  const r = wrap.getBoundingClientRect();
+  return {x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))};
+}
+
+function shape(start, p) {
+  const y = Math.min(start.y, p.y), h = Math.abs(p.y - start.y);
+  if (mode === 'explain') return {x: 0, y, w: 1, h};  // 해설은 이미지 전체 폭의 가로 띠
+  return {x: Math.min(start.x, p.x), y, w: Math.abs(p.x - start.x), h};
+}
+
+function attachDrawing(wrap) {
+  wrap.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const start = pointIn(wrap, e);
+    const ghost = document.createElement('div');
+    ghost.className = 'rect drawing';
+    wrap.append(ghost);
+    drag = {start, ghost, add: e.shiftKey, rect: null};
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const r = shape(drag.start, pointIn(wrap, e));
+    drag.rect = r;
+    Object.assign(drag.ghost.style, {left: r.x * 100 + '%', top: r.y * 100 + '%', width: r.w * 100 + '%', height: r.h * 100 + '%'});
+  });
+  const end = () => {
+    if (!drag) return;
+    const {rect, add, ghost} = drag;
+    ghost.remove();
+    drag = null;
+    if (!rect || rect.w < MIN || rect.h < MIN) { selected = -1; renderRects(); return; }
+    const key = items[index].key, map = store();
+    const list = add ? [...(map[key] || [])] : [];
+    list.push(rect);
+    map[key] = list;
+    selected = list.length - 1;
+    markDirty();
+    renderRects();
+    renderList();
+  };
+  wrap.addEventListener('pointerup', end);
+  wrap.addEventListener('pointercancel', () => { drag?.ghost.remove(); drag = null; });
+}
+
+function deleteSelected() {
+  if (index < 0 || selected < 0) return;
+  const key = items[index].key, map = store();
+  const list = map[key] || [];
+  list.splice(selected, 1);
+  if (list.length) map[key] = list; else delete map[key];
+  selected = -1;
+  markDirty(); renderRects(); renderList();
+}
+function clearCurrent() {
+  if (index < 0) return;
+  const key = items[index].key, map = store();
+  if (!map[key]?.length) return;
+  if (!confirm(`이 문제의 ${KINDS[mode].label} 영역을 모두 삭제할까요?`)) return;
+  delete map[key];
+  selected = -1;
+  markDirty(); renderRects(); renderList();
+}
+
+function setItems(list) {
+  items = list.sort((a, b) => a.key.localeCompare(b.key, 'ko', {numeric: true}));
+  if (!items.length) {
+    $('stage-body').innerHTML = '<div class="empty">문제 이미지를 찾지 못했습니다. <code>datasets/default</code> 폴더를 선택했는지 확인하세요.</div>';
+    renderList(); return;
+  }
+  select(0);
+}
+
+function offerDraft() {
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch {}
+  if (!draft) return;
+  const normalized = normalizeData(draft);
+  if (!Object.keys(normalized.regions).length && !Object.keys(normalized.explains).length) return;
+  if (JSON.stringify(normalized) === JSON.stringify(data)) return;
+  if (confirm('저장하지 않은 이전 편집 내용이 브라우저에 남아 있습니다. 불러올까요?')) {
+    data = normalized;
+    dirty = true;
+    setStatus('이전 편집 내용을 불러왔습니다. 저장을 잊지 마세요.', true);
+  }
+}
+
+// 이미지 목록: 실행.bat 로컬 서버면 images 폴더를 직접 읽고, 아니면 regions.json에 등록된 이미지를 씁니다.
+async function autoLoad() {
+  let keys = [];
+  try {
+    const res = await fetch('api/list-images', {cache: 'no-store'});
+    if (res.ok) keys = (await res.json()).filter(k => !isExplanation(k));
+  } catch {}
+  try {
+    const r = await fetch('datasets/default/regions.json', {cache: 'no-store'});
+    if (r.ok) data = normalizeData(await r.json());
+  } catch {}
+  if (!keys.length) keys = [...new Set([...Object.keys(data.regions), ...Object.keys(data.explains)])].sort((a, b) => a.localeCompare(b, 'ko', {numeric: true}));
+  if (!keys.length) {
+    setStatus('폴더를 선택해 주세요.');
+    renderOutput();
+    return;
+  }
+  offerDraft();
+  setItems(keys.map(key => ({key, src: 'datasets/default/' + key})));
+  renderOutput();
+}
+
+$('folder').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  // webkitRelativePath: "<선택한 폴더>/images/xxx.png" → "images/xxx.png"
+  const rel = f => f.webkitRelativePath.split('/').slice(1).join('/');
+  const regionFile = files.find(f => rel(f) === 'regions.json');
+  data = {regions: {}, explains: {}};
+  if (regionFile) {
+    try { data = normalizeData(JSON.parse(await regionFile.text())); } catch { alert('regions.json을 읽지 못했습니다.'); }
+  }
+  dirty = false;
+  offerDraft();
+  const images = files.filter(f => rel(f).startsWith('images/') && isImage(f.name) && !isExplanation(f.name));
+  if (!images.length && files.some(f => isImage(f.name))) {
+    alert('images 폴더가 아닌 그 상위 폴더(datasets/default)를 선택해 주세요.');
+  }
+  setItems(images.map(f => ({key: rel(f), src: URL.createObjectURL(f)})));
+  renderOutput();
+  e.target.value = '';
+});
+
+$('import').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    data = normalizeData(JSON.parse(await file.text()));
+    markDirty();
+    if (index >= 0) select(index);
+  } catch { alert('JSON 형식이 올바르지 않습니다.'); }
+  e.target.value = '';
+});
+
+// 실행.bat 로컬 서버로 열었으면 서버가 datasets/default/regions.json 에 바로 저장합니다.
+async function saveToServer(text) {
+  try {
+    const res = await fetch('api/save-regions', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Memory-Master': '1'}, body: text});
+    if (!res.ok) return false;
+    return !!(await res.json()).ok;
+  } catch {
+    return false;
+  }
+}
+
+function markSaved(message) {
+  dirty = false;
+  try { localStorage.removeItem(DRAFT_KEY); } catch {}
+  setStatus(message);
+  renderList();
+  setStatus(message);
+}
+
+async function save() {
+  const text = buildJson();
+  $('save').disabled = true;
+  const direct = location.protocol.startsWith('http') && await saveToServer(text);
+  $('save').disabled = false;
+  if (direct) { markSaved(`✅ 저장 완료 (${new Date().toLocaleTimeString()}) — datasets/default/regions.json`); return; }
+  try {
+    if (window.showSaveFilePicker) {
+      const handle = await showSaveFilePicker({suggestedName: 'regions.json', types: [{description: 'JSON', accept: {'application/json': ['.json']}}]});
+      const w = await handle.createWritable();
+      await w.write(text); await w.close();
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+      a.download = 'regions.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+    alert('저장하지 못했습니다: ' + err.message);
+    return;
+  }
+  markSaved('저장했습니다. 파일을 datasets/default/regions.json 위치에 두세요.');
+}
+$('save').addEventListener('click', save);
+
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(buildJson()); setStatus('JSON을 클립보드에 복사했습니다.', dirty); }
+  catch { $('output').closest('details').open = true; $('output').select(); }
+});
+
+$('mode-answer').onclick = () => setMode('answer');
+$('mode-explain').onclick = () => setMode('explain');
+$('prev').onclick = () => select(index - 1);
+$('next').onclick = () => select(index + 1);
+$('delete').onclick = deleteSelected;
+$('clear').onclick = clearCurrent;
+$('filter').addEventListener('input', renderList);
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === 'ArrowLeft') select(index - 1);
+  else if (e.key === 'ArrowRight') select(index + 1);
+  else if (e.key === '1') setMode('answer');
+  else if (e.key === '2') setMode('explain');
+  else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelected(); }
+  else if (e.key === 'Escape') { selected = -1; renderRects(); }
+});
+window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+setMode('answer');
+autoLoad();
+</script>
+</body>
+</html>

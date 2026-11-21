@@ -23,20 +23,16 @@
 <main class="workspace">
 <section class="panel question-panel">
 <div class="panel-heading"><div><span class="smalllabel">문제</span><h2 id="question-title">문제를 불러오는 중…</h2></div><span class="chip" id="round-chip">이미지 문제</span></div>
-<div class="image-well" id="question-well"><img alt="문제 이미지" id="question-image"/><p hidden="" id="question-empty">이미지를 표시할 수 없습니다.</p></div>
-<p class="hint">이미지를 누르면 크게 볼 수 있습니다.</p>
-</section>
-<button class="primary next next-correct" hidden id="next-correct" type="button">다음 문제 →</button>
-<div class="panel explanation" hidden="" id="explanation"><h3>해설</h3><div class="feedback" hidden="" id="feedback" role="status"></div><p id="correct-answer"></p><div id="explanation-well"><img alt="해설 이미지" id="explanation-image"/><p hidden="" id="missing-explanation">등록된 해설 이미지가 없습니다.</p></div><button class="primary next" id="next" type="button">다음 문제 →</button></div><section class="panel answer-panel">
-<div class="panel-heading"><div><span class="smalllabel">답안</span><h2>정답 입력</h2></div></div>
-<form autocomplete="off" id="answer-form">
-<label for="answer">정답을 입력하세요</label>
-<div class="answer-line"><input autocapitalize="off" autocomplete="off" id="answer" inputmode="text" placeholder="예: 3" type="text"/><button class="primary" id="check" type="submit">확인</button></div>
-</form>
-<div aria-label="빠른 정답 입력" class="quick"><span>빠른 입력</span><div id="quick-buttons"><button data-answer="1" type="button">1</button><button data-answer="2" type="button">2</button><button data-answer="3" type="button">3</button><button data-answer="4" type="button">4</button><button data-answer="5" type="button">5</button></div></div>
-<div class="action-row"><button class="outline" id="reveal" type="button">정답·해설 보기</button><button class="ghost" id="skip" type="button">나중에 풀기</button></div>
-
-
+<div class="image-well" id="question-well"><img alt="문제 이미지" id="question-image"/><div class="hit-layer" id="hit-layer" aria-hidden="true"></div><button class="zoom-button" hidden id="zoom-question" type="button" aria-label="문제 이미지 확대">🔍 확대</button><p hidden="" id="question-empty">이미지를 표시할 수 없습니다.</p></div>
+<p class="hint" id="question-hint">이미지에서 정답 위치를 누르세요.</p>
+<div class="action-row" id="actions"><button class="outline" id="reveal" type="button">정답·해설 보기</button><button class="ghost" id="skip" type="button">나중에 풀기</button></div>
+<div class="result" hidden id="result">
+<div class="feedback" id="feedback" role="status"></div>
+<p class="correct-answer" id="correct-answer"></p>
+<button class="primary next" hidden id="next-top" type="button">다음 문제 →</button>
+<div class="explanation-well" hidden id="explanation-well"><span class="smalllabel">해설</span><img alt="해설 이미지" id="explanation-image"/></div>
+<button class="primary next" hidden id="next" type="button">다음 문제 →</button>
+</div>
 <div class="finish" hidden="" id="finish"><div class="finish-emoji">🎉</div><h2>이번 학습을 완료했습니다!</h2><p id="finish-summary"></p><button class="primary" id="finish-restart" type="button">다시 학습하기</button></div>
 </section>
 </main>
@@ -53,6 +49,12 @@
 <footer>학습 기록은 현재 브라우저에 저장됩니다. 다른 기기와 자동으로 동기화되지 않습니다.</footer>
 </div>
 <dialog aria-label="이미지 확대" id="lightbox"><button class="lightbox-close" id="close-lightbox" type="button">닫기 ✕</button><img alt="확대 이미지" id="lightbox-image"/></dialog>
+<button class="next-float" id="next-float" type="button" aria-label="다음 문제" title="다음 문제" hidden><span class="next-float-arrow" aria-hidden="true"></span><span class="next-float-label">다음</span></button>
+<button class="archery-launch" id="archery-launch" type="button" aria-label="활쏘기 조준" title="누른 채 드래그해서 조준하고, 손을 떼면 발사합니다" disabled>
+<span class="bow-icon" aria-hidden="true"></span>
+</button>
+<script defer="" src="archery.js"></script>
+<script defer="" src="fx.js"></script>
 <script defer="" src="app.js"></script>
 </body>
 </html>
