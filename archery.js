@@ -269,12 +269,13 @@ function render(t) {
 }
 
 function startPoint(panel) {
+  // 문제 이미지 하단 중앙과 활 버튼 중앙의 한가운데에서 조준을 시작합니다.
   const img = document.getElementById('question-image');
-  if (!img.hidden && img.naturalWidth) {
-    const r = img.getBoundingClientRect();
-    return {x: r.left - panel.left + r.width / 2, y: r.top - panel.top + r.height / 2};
-  }
-  return {x: panel.width / 2, y: panel.height / 2};
+  const bow = launch.getBoundingClientRect();
+  const r = !img.hidden && img.naturalWidth ? img.getBoundingClientRect() : panel;
+  const x = (r.left + r.width / 2 + bow.left + bow.width / 2) / 2 - panel.left;
+  const y = (r.bottom + bow.top + bow.height / 2) / 2 - panel.top;
+  return {x: Math.max(0, Math.min(panel.width, x)), y: Math.max(0, Math.min(panel.height, y))};
 }
 
 function openScope(event) {
