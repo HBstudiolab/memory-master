@@ -4,13 +4,12 @@
  * - 정답: 맞힌 지점으로 카메라가 여러 번 줌인(펀치)하며 번쩍이고, 정답 영역의 잔상 테두리가 겹겹이 퍼짐 + 별가루 + 차임
  * - 오답: 문제 이미지 전체가 유리창처럼 금 가며 와장창 깨져 떨어지고 화면이 크게 흔들림
  * - 연속 정답 FEVER_AT회 이후의 문제는 불화살(크리티컬) 연출
- * - 화면 최상단 바: 러닝 페이스처럼 "1문제당 몇 초"로 표시. 👻 라이벌은 목표 페이스(PACE_MS/문제)로 달리고,
+ * - 화면 최상단 '암기 마라톤' 바: 러닝 페이스처럼 "1문제당 몇 초"로 표시. 👻 라이벌은 고른 등급(RIVALS)의 페이스로 달리고,
  *   오답·해설 보기마다 내 기록에 PENALTY_MS가 더해집니다.
  * (archery.js 뒤, app.js 앞에 로드됩니다. state·phase·$ 등은 app.js의 전역을 실행 시점에 참조합니다.)
  */
 
 const FEVER_AT = 4;        // 이만큼 연속으로 맞히면 다음 문제부터 불화살
-const PACE_MS = 35000;     // 목표 페이스: 1문제당 35초
 const PENALTY_MS = 20000;  // 오답(또는 해설 보기) 1번마다 기록에 더해지는 시간
 const CRACK_MS = 150;      // 오답: 유리에 금이 간 채 멈춰 있는 시간(히트스톱)
 
@@ -228,33 +227,80 @@ function smash(host, ix, iy) {
   }
 }
 
-/* ---------- 고스트 페이스메이커(러닝 페이스) ---------- */
+/* ---------- 암기 마라톤(고스트 페이스메이커) ---------- */
+
+// 라이벌 등급: 1문제를 몇 초에 푸는 상대인지
+const RIVALS = [
+  {id: 'intro', name: '입문', ms: 180000},
+  {id: 'novice', name: '초보', ms: 120000},
+  {id: 'mid', name: '중수', ms: 90000},
+  {id: 'pro', name: '고수', ms: 60000},
+  {id: 'master', name: '초고수', ms: 30000},
+  {id: 'legend', name: '고인물', ms: 15000}
+];
+const DEFAULT_RIVAL = 'pro';
+const RIVAL_KEY = 'memory-master-rival';
+let rivalPick = RIVALS.find(r => r.id === (() => { try { return localStorage.getItem(RIVAL_KEY); } catch { return null; } })())
+  || RIVALS.find(r => r.id === DEFAULT_RIVAL);
 
 const pacer = document.createElement('div');
 pacer.className = 'pacer';
 pacer.hidden = true;
-pacer.setAttribute('aria-label', '고스트 페이스메이커');
+pacer.setAttribute('aria-label', '암기 마라톤');
 pacer.innerHTML = `
   <span class="pacer-light" aria-hidden="true"></span>
-  <span class="pacer-label">PACE</span>
+  <strong class="pacer-label">암기 마라톤</strong>
   <div class="pacer-track" aria-hidden="true">
     <span class="pacer-fill"></span>
-    <span class="pacer-runner rival" title="라이벌(목표 페이스)"><span>👻</span></span>
+    <span class="pacer-runner rival"><span>👻</span></span>
     <span class="pacer-runner me" title="나"><span><i>🏃</i></span></span>
   </div>
   <span class="pacer-combo" hidden></span>
-  <span class="pacer-pace"><b></b><small>/문제</small></span>
-  <span class="pacer-goal"></span>
+  <span class="pacer-pace" title="내 페이스(1문제당)"><b></b><small>/문제</small></span>
+  <button class="pacer-pick" type="button" aria-haspopup="true" aria-expanded="false" title="라이벌 바꾸기"></button>
   <span class="pacer-diff"></span>
-  <span class="pacer-text"></span>`;
+  <span class="pacer-text"></span>
+  <div class="pacer-menu" role="menu" hidden></div>`;
 document.body.prepend(pacer);
+// 바가 휴대폰에서 두 줄로 접혀도 본문이 가려지지 않게 높이만큼 위 여백을 줍니다.
+if (window.ResizeObserver) new ResizeObserver(() => document.body.style.setProperty('--pacer-h', pacer.offsetHeight + 'px')).observe(pacer);
 const pq = name => pacer.querySelector('.pacer-' + name);
-const [pacerFill, pacerMe, pacerRival, pacerCombo, pacerPace, pacerGoal, pacerDiff, pacerText] =
-  ['fill', 'runner.me', 'runner.rival', 'combo', 'pace b', 'goal', 'diff', 'text'].map(pq);
+const [pacerFill, pacerMe, pacerRival, pacerCombo, pacerPace, pacerPick, pacerDiff, pacerText, pacerMenu] =
+  ['fill', 'runner.me', 'runner.rival', 'combo', 'pace b', 'pick', 'diff', 'text', 'menu'].map(pq);
 let pacerFor = null, pacerStatus = '';
 
 // 러닝 페이스 표기: 42초 → 0'42"
 const paceText = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}'${String(s % 60).padStart(2, '0')}"`; };
+
+function renderRivalMenu() {
+  pacerPick.innerHTML = `👻 vs <b>${rivalPick.name}</b> ${paceText(rivalPick.ms)} <span aria-hidden="true">▾</span>`;
+  pacerRival.title = `라이벌: ${rivalPick.name} (1문제당 ${paceText(rivalPick.ms)})`;
+  pacerMenu.innerHTML = '<p>라이벌 선택 · 1문제당 시간</p>' + RIVALS.map(r =>
+    `<button type="button" role="menuitemradio" aria-checked="${r === rivalPick}" data-rival="${r.id}"><b>${r.name}</b><span>${paceText(r.ms)}</span></button>`).join('');
+}
+
+function toggleRivalMenu(open = pacerMenu.hidden) {
+  pacerMenu.hidden = !open;
+  pacerPick.setAttribute('aria-expanded', String(open));
+  if (open) pacerMenu.querySelector('[aria-checked="true"]')?.focus();
+}
+
+pacerPick.addEventListener('click', e => { e.stopPropagation(); toggleRivalMenu(); });
+pacerMenu.addEventListener('click', e => {
+  e.stopPropagation();
+  const pick = RIVALS.find(r => r.id === e.target.closest('[data-rival]')?.dataset.rival);
+  if (!pick) return;
+  rivalPick = pick;
+  try { localStorage.setItem(RIVAL_KEY, pick.id); } catch {}
+  renderRivalMenu();
+  toggleRivalMenu(false);
+  pacerStatus = '';              // 라이벌을 바꾼 순간에는 추월 번쩍임을 생략
+  updatePacer();
+  pacerStatus = pacer.dataset.status;
+});
+document.addEventListener('click', () => { if (!pacerMenu.hidden) toggleRivalMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pacerMenu.hidden) { toggleRivalMenu(false); pacerPick.focus(); } });
+renderRivalMenu();
 
 // 오답·해설 보기: 내 기록에 시간을 더합니다(라이벌이 그만큼 앞으로 달아남).
 function penalize() {
@@ -272,11 +318,12 @@ function penalize() {
 function updatePacer() {
   if (!state) return;
   if (pacerFor !== state) { pacerFor = state; pacerStatus = ''; }
+  const goal = rivalPick.ms;
   const total = Math.max(1, state.total);
   const me = state.total - state.queue.length;
-  const spent = nowElapsed() + (state.penalty || 0);            // 내 기록(학습 시간 + 페널티)
-  const rival = Math.min(state.total, spent / PACE_MS);         // 목표 페이스로 달렸다면 지금쯤 푼 문제 수
-  const gapSec = Math.round((me * PACE_MS - spent) / 1000);      // +면 목표보다 그만큼 빠름
+  const spent = nowElapsed() + (state.penalty || 0);            // 내 기록(학습 시간 + 벌점)
+  const rival = Math.min(state.total, spent / goal);            // 라이벌이 지금쯤 푼 문제 수
+  const gapSec = Math.round((me * goal - spent) / 1000);        // +면 라이벌보다 그만큼 빠름
   const status = me >= state.total || gapSec > 0 ? 'ahead' : gapSec < 0 ? 'behind' : 'tie';
   pacer.hidden = false;
   document.body.classList.add('has-pacer');
@@ -285,13 +332,12 @@ function updatePacer() {
 
   const pace = me ? spent / me : null;
   pacerPace.textContent = pace ? paceText(pace) : `-'--"`;
-  pacerPace.parentElement.dataset.speed = !pace ? '' : pace <= PACE_MS ? 'fast' : 'slow';
-  pacerGoal.textContent = `목표 ${paceText(PACE_MS)}`;
-  // 페이스 차이: 1문제당 목표보다 몇 초 느린지/빠른지
-  const diffSec = pace ? Math.round((pace - PACE_MS) / 1000) : 0;
+  pacerPace.parentElement.dataset.speed = !pace ? '' : pace <= goal ? 'fast' : 'slow';
+  // 페이스 차이: 1문제당 라이벌보다 몇 초 느린지/빠른지
+  const diffSec = pace ? Math.round((pace - goal) / 1000) : 0;
   pacerDiff.hidden = !pace;
   pacerDiff.dataset.speed = diffSec > 0 ? 'slow' : diffSec < 0 ? 'fast' : '';
-  pacerDiff.textContent = diffSec > 0 ? `문제당 ${diffSec}초 느림` : diffSec < 0 ? `문제당 ${-diffSec}초 빠름` : '목표 페이스';
+  pacerDiff.textContent = diffSec > 0 ? `문제당 ${diffSec}초 느림` : diffSec < 0 ? `문제당 ${-diffSec}초 빠름` : '같은 페이스';
   pacerText.textContent = gapSec > 0 ? `${gapSec}초 앞섬` : gapSec < 0 ? `${-gapSec}초 뒤처짐` : '동률';
 
   const streak = state.streak || 0;

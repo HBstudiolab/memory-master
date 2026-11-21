@@ -539,7 +539,7 @@ function setHitMode(q) {
   const has = !!q.regions;
   $('question-well').classList.toggle('is-hittable', has);
   $('zoom-question').hidden = !has;
-  $('question-hint').textContent = '이미지에서 정답 위치를 누르거나, 오른쪽 활 버튼을 누른 채 드래그해 쏘세요. 🔍 버튼으로 크게 볼 수 있습니다.';
+  $('question-hint').textContent = '이미지에서 정답 위치를 누르거나, 오른쪽 아래 활 버튼을 누른 채 드래그해 쏘세요. 🔍 버튼으로 크게 볼 수 있습니다.';
   layoutHitLayer();
 }
 

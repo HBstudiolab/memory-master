@@ -397,3 +397,31 @@ body.has-pacer{padding-top:36px}
 .next-float.is-last .next-float-label::after{content:"결과";font-size:10px}
 @keyframes next-float-in{from{opacity:0;transform:translateY(-50%) scale(.4)}to{opacity:1;transform:translateY(-50%) scale(1)}}
 @keyframes next-float-pulse{0%,100%{box-shadow:0 5px 16px #1d4ed866,0 0 0 0 #3b82f680}50%{box-shadow:0 5px 16px #1d4ed866,0 0 0 10px #3b82f600}}
+
+/* v1.13: 암기 마라톤 바 + 라이벌 선택 */
+body.has-pacer{padding-top:var(--pacer-h,36px)}
+.pacer{height:auto;min-height:36px;padding-top:4px;padding-bottom:4px}
+.pacer-label{flex:none;color:#f8fafc;font-size:13px;font-weight:900;letter-spacing:-.02em;white-space:nowrap}
+.pacer-pick{flex:none;display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid #ef444488;border-radius:999px;background:#3f1d24;color:#fecaca;font-size:11px;font-weight:700;white-space:nowrap}
+.pacer-pick b{color:#fff}
+.pacer-pick:hover,.pacer-pick[aria-expanded=true]{background:#5b2330}
+.pacer-menu{position:absolute;top:calc(100% + 6px);right:max(12px,env(safe-area-inset-right));z-index:41;display:grid;gap:4px;min-width:190px;padding:8px;border:1px solid #334155;border-radius:14px;background:#0f172a;box-shadow:0 12px 32px #0008}
+.pacer-menu p{margin:2px 6px 6px;color:#94a3b8;font-size:11px;font-weight:700}
+.pacer-menu button{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:9px 12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;font-size:13px;text-align:left}
+.pacer-menu button span{color:#94a3b8;font-variant-numeric:tabular-nums}
+.pacer-menu button:hover{background:#334155}
+.pacer-menu button[aria-checked=true]{background:#7f1d1d;color:#fff;box-shadow:inset 0 0 0 1px #ef4444}
+.pacer-menu button[aria-checked=true] span{color:#fecaca}
+@media(max-width:640px){
+ .pacer{flex-wrap:wrap;row-gap:5px;column-gap:7px}
+ .pacer-label{display:block;font-size:12px}
+ .pacer-track{order:9;flex:1 0 100%;margin:4px 14px 6px}
+ .pacer-text{display:none}
+ .pacer-pick{padding:3px 8px}
+}
+
+/* v1.13: 활·다음 플로팅 버튼은 엄지로 누르기 좋게 오른쪽 아래 */
+body{padding-bottom:96px}
+.archery-launch,.next-float{top:auto;bottom:max(18px,calc(env(safe-area-inset-bottom) + 14px));right:max(16px,env(safe-area-inset-right));transform:none;width:64px;height:64px}
+@keyframes next-float-in{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+.fps-toast{bottom:max(96px,calc(env(safe-area-inset-bottom) + 92px))}
